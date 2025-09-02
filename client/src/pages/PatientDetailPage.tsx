@@ -118,14 +118,14 @@ export const PatientDetailPage = () => {
         typeof data === 'object' &&
           data !== null &&
           'error' in data &&
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           Array.isArray((data as any).error)
       );
       return (
         typeof data === 'object' &&
         data !== null &&
         'error' in data &&
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         Array.isArray((data as any).error)
       );
     };
