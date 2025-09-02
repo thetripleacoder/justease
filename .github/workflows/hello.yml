@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Say Hello
-        run: echo "Hello World!"
+        run: echo "Hello WorldS!"
 
       - name: Show Date
         run: date
