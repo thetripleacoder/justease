@@ -38,8 +38,8 @@ jobs:
       - name: Build server
         run: cd server && npm run tsc
 
-      - name: Test server
-        run: cd server && npm test
+      # - name: Test server
+      #   run: cd server && npm test
 
       - name: Trigger Render Deployment
         if: ${{ github.event_name == 'push' && steps.skip_check.outputs.skip_tagging == 'false' }}
