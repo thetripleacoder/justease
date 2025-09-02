@@ -104,33 +104,29 @@ jobs:
     needs: [server_pipeline, client_pipeline]
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' && needs.server_pipeline.outputs.skip_tagging == 'false' }}
+    strategy:
+      matrix:
+        app: [server, client]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Tag server release
+      - name: Tag ${{ matrix.app }} release
         uses: anothrNick/github-tag-action@1.64.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
-          CUSTOM_TAG: server-v
+          CUSTOM_TAG: ${{ matrix.app }}-v
 
-      - name: Tag client release
-        uses: anothrNick/github-tag-action@1.64.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEFAULT_BUMP: patch
-          CUSTOM_TAG: client-v
-
-      - name: Notify Discord of successful deployment
+      - name: Notify Discord of successful ${{ matrix.app }} deployment
         uses: BubbleProd/discord-webhook-notify@v2
         with:
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
           severity: info
           details: |
             ✅ Deployment succeeded for `${{ github.repository }}`
-            🔖 Tags: `server-v*`, `client-v*`
-            📦 Commit: `${{ github.sha }}`
+            🔖 Tagged `${{ matrix.app }}-v*`
+            📦 Commit: `${{ github.sha }}`  
           username: "CI Bot"
           color: "#00ff00"
 
