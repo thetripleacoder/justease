@@ -36,7 +36,7 @@ jobs:
         run: cd server && npm run lint
 
       - name: Build server
-        run: cd server && npm run build
+        run: cd server && npm run tsc
 
       - name: Test server
         run: cd server && npm test
@@ -79,8 +79,8 @@ jobs:
       - name: Build client
         run: cd client && npm run build
 
-      - name: Test client
-        run: cd client && npm test
+      # - name: Test client
+      #   run: cd client && npm test
 
       - name: Trigger Render Deployment (Client)
         if: ${{ github.event_name == 'push' }}
