@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize]
 
 jobs:
-  simple_deployment_pipeline:
+  server_pipeline:
     runs-on: ubuntu-latest
     outputs:
       skip_tagging: ${{ steps.skip_check.outputs.skip_tagging }}
@@ -29,30 +29,71 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install server dependencies
+        run: cd server && npm ci
 
-      - name: Lint code
-        run: npm run lint
+      - name: Lint server code
+        run: cd server && npm run lint
 
-      - name: Build project
-        run: npm run build
+      - name: Build server
+        run: cd server && npm run build
 
-      - name: Run tests
-        run: npm test
+      - name: Test server
+        run: cd server && npm test
 
       - name: Trigger Render Deployment
         if: ${{ github.event_name == 'push' && steps.skip_check.outputs.skip_tagging == 'false' }}
-        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID_SERVER }}?key=${{ secrets.RENDER_API_KEY }}
 
-      - name: Notify Discord of build failure
+      - name: Notify Discord of server build failure
         if: failure()
         uses: BubbleProd/discord-webhook-notify@v2
         with:
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
           severity: error
           details: |
-            ❌ Build failed for `${{ github.repository }}`
+            ❌ Server build failed for `${{ github.repository }}`
+            🧪 Commit: `${{ github.event.head_commit.message }}`
+            🔗 Author: `${{ github.event.head_commit.author.name }}`
+            🔍 SHA: `${{ github.sha }}`
+          username: "CI Bot"
+          color: "#ff0000"
+
+  client_pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install client dependencies
+        run: cd client && npm ci
+
+      - name: Lint client code
+        run: cd client && npm run lint
+
+      - name: Build client
+        run: cd client && npm run build
+
+      - name: Test client
+        run: cd client && npm test
+
+      - name: Trigger Render Deployment (Client)
+        if: ${{ github.event_name == 'push' }}
+        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID_CLIENT }}?key=${{ secrets.RENDER_API_KEY }}
+
+      - name: Notify Discord of client build failure
+        if: failure()
+        uses: BubbleProd/discord-webhook-notify@v2
+        with:
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          severity: error
+          details: |
+            ❌ Client build failed for `${{ github.repository }}`
             🧪 Commit: `${{ github.event.head_commit.message }}`
             🔗 Author: `${{ github.event.head_commit.author.name }}`
             🔍 SHA: `${{ github.sha }}`
@@ -60,9 +101,9 @@ jobs:
           color: "#ff0000"
 
   tag_release:
-    needs: [simple_deployment_pipeline]
+    needs: [server_pipeline, client_pipeline]
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && needs.simple_deployment_pipeline.outputs.skip_tagging == 'false' }}
+    if: ${{ github.event_name == 'push' && needs.server_pipeline.outputs.skip_tagging == 'false' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
