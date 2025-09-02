@@ -1,0 +1,21 @@
+name: Hello World Workflow
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  hello_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Say Hello
+        run: echo "Hello World!"
+
+      - name: Show Date
+        run: date
+
+      - name: List Directory Contents
+        run: ls -l
