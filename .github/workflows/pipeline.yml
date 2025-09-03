@@ -134,3 +134,10 @@ jobs:
           username: "CI Bot"
           color: "#00ff00"
 
+      - name: Discord notification to DCS-UH channel
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_DCSUH }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: 'The project {{ EVENT_PAYLOAD.repository.full_name }} has been deployed.'
+
